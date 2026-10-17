@@ -1,0 +1,50 @@
+[Unit]
+Description=geoblock: load the country IP range filter (nftables)
+Documentation=https://github.com/G6L20/geoblock
+# Loaded before the network comes up so there is no unfiltered window, and after
+# nftables.service so a 'flush ruleset' in /etc/nftables.conf does not remove it.
+DefaultDependencies=no
+After=local-fs.target nftables.service
+Before=network-pre.target
+Wants=network-pre.target
+RequiresMountsFor=/var/lib/geoblock
+Conflicts=shutdown.target
+Before=shutdown.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/geoblock load
+ExecReload=/usr/bin/geoblock load
+ExecStop=/usr/bin/geoblock unload
+TimeoutStartSec=2min
+TimeoutStopSec=1min
+
+# Sandboxing: the only privilege needed is configuring netfilter via netlink.
+CapabilityBoundingSet=CAP_NET_ADMIN
+AmbientCapabilities=
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/geoblock
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictAddressFamilies=AF_NETLINK AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+UMask=0022
+
+[Install]
+WantedBy=multi-user.target

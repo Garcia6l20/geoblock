@@ -1,0 +1,62 @@
+name: ci
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: sudo apt-get update && sudo apt-get install -y shellcheck shfmt
+      - run: pip install ruff
+      - run: ./scripts/check.sh lint
+      - run: ./scripts/check.sh consistency
+      - run: ./scripts/check.sh units
+
+  unit:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install pytest
+      - run: python -m pytest -q tests/unit
+
+  integration:
+    # Real nftables inside an unprivileged user+network namespace; never touches the runner's firewall.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: sudo apt-get update && sudo apt-get install -y nftables iptables iproute2 util-linux
+      - run: pip install pytest
+      - name: Allow unprivileged user namespaces (Ubuntu 24.04 AppArmor restriction)
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - run: python -m pytest -q -rs tests/integration
+
+  package:
+    runs-on: ubuntu-24.04
+    container: archlinux:base-devel
+    steps:
+      - run: pacman -Syu --noconfirm git namcap python python-pytest openssl nftables
+      - uses: actions/checkout@v4
+      - name: Build and inspect the package as an unprivileged user
+        run: |
+          useradd -m builder
+          chown -R builder .
+          su builder -c 'make dist && mkdir -p /tmp/pkg && cp packaging/arch/* dist/geoblock-*.tar.gz /tmp/pkg/ && cd /tmp/pkg && makepkg -f --nodeps'
+          namcap /tmp/pkg/PKGBUILD
+          namcap /tmp/pkg/*.pkg.tar.zst

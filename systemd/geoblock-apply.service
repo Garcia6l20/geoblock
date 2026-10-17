@@ -1,0 +1,37 @@
+[Unit]
+Description=geoblock: validate staged data and load the nftables ruleset
+Documentation=https://github.com/G6L20/geoblock
+# Triggered by geoblock-update.service; no network access is needed.
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/geoblock apply
+TimeoutStartSec=5min
+
+# CAP_NET_ADMIN configures nftables; CAP_DAC_READ_SEARCH reads the staging files
+# owned by the unprivileged fetcher (they are opened without following symlinks).
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_DAC_READ_SEARCH
+AmbientCapabilities=
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/geoblock
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictAddressFamilies=AF_NETLINK AF_UNIX
+IPAddressDeny=any
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+UMask=0022

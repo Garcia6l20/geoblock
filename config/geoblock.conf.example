@@ -1,0 +1,61 @@
+# /etc/geoblock/geoblock.conf
+#
+# Format: "key = value", one per line. Comments start with '#'.
+# Unknown keys, duplicate keys and out-of-range values are rejected (see
+# `geoblock check-config`). Every option is documented in docs/configuration.md.
+# Values shown are the defaults; uncomment to change them.
+#
+# Whether the firewall policy is *enabled* is not a setting: it is state set by
+# `geoblock enable` / `geoblock disable`.
+
+# --- Data provider ---------------------------------------------------------
+# provider = ipdeny
+# Override the provider's download URLs (https only; {cc} = country code).
+# Example: ipv4_url = https://example.org/zones/{cc}-v4.zone
+# ipv4_url =
+# ipv6_url =
+# PEM bundle used instead of the system trust store (e.g. a corporate proxy CA).
+# ca_file =
+
+# --- Countries -------------------------------------------------------------
+# Comma-separated ISO 3166 two-letter codes to block. There is NO default: the
+# tool refuses to enable until you list countries explicitly.
+# min_entries_* below apply to each country separately.
+countries = ru
+
+# --- What to filter --------------------------------------------------------
+# ipv4 = yes
+# ipv6 = yes
+# block_input = yes      # drop packets whose SOURCE is listed
+# block_output = yes     # block packets whose DESTINATION is listed
+# block_forward = no     # routed/container traffic (Docker, VMs, routers)
+# reject = tell the local application immediately; drop = silent timeout.
+# output_action = reject
+# Priority of the nftables hooks (lower runs earlier; UFW/iptables use 0).
+# hook_priority = -10
+
+# --- Exceptions (allowlist) ------------------------------------------------
+# Comma-separated CIDRs exempted from the block. They are matched BEFORE the
+# country list in this project's chains only; they do not override other
+# firewalls. Exceptions are shown by `geoblock status`. Keep this empty
+# unless you need it.
+# allow_ipv4 =
+# allow_ipv6 =
+
+# --- Download limits -------------------------------------------------------
+# connect_timeout = 15         # seconds per socket operation
+# download_timeout = 120       # seconds for one whole download
+# retries = 3                  # extra attempts on transient errors (0-5)
+# retry_delay = 5              # seconds; doubles each attempt
+# max_download_bytes = 4194304
+
+# --- Plausibility checks (a dataset failing these is never applied) --------
+# min_entries_v4 = 10          # per country; for ru, 2000 is a sensible value
+# min_entries_v6 = 1           # per country; for ru, 200 is a sensible value
+# Refuse an update that drops more than this share of the previous entries.
+# max_shrink_percent = 50
+
+# --- Retention / logging / privilege ---------------------------------------
+# keep_generations = 5         # known-good snapshots kept for rollback (2-50)
+# log_level = info             # error | warning | info | debug
+# service_user = geoblock   # user for the unprivileged download stage

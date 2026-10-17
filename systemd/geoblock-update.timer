@@ -1,0 +1,15 @@
+[Unit]
+Description=geoblock: daily refresh of country IP ranges
+Documentation=https://github.com/G6L20/geoblock
+
+[Timer]
+# Change with: systemctl edit geoblock-update.timer  (see docs/configuration.md)
+OnCalendar=daily
+RandomizedDelaySec=1h
+AccuracySec=5min
+# Run once at the next boot if a scheduled run was missed while powered off.
+Persistent=true
+Unit=geoblock-update.service
+
+[Install]
+WantedBy=timers.target

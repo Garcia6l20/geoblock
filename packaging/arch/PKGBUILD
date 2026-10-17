@@ -1,0 +1,30 @@
+# Maintainer: Garcia Sylvain <garcia.g6l20@gmail.com>
+pkgname=geoblock
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Block inbound and outbound traffic for chosen countries (IPv4/IPv6) with a dedicated nftables table'
+arch=('any')
+url='https://github.com/G6L20/geoblock'
+license=('MIT')
+depends=('python' 'nftables' 'systemd')
+makedepends=('make')
+checkdepends=('python-pytest' 'openssl')
+optdepends=('ufw: existing firewall frontend; geoblock coexists with it and never modifies it')
+backup=('etc/geoblock/geoblock.conf')
+install=geoblock.install
+# `make dist` in the repository produces this tarball. For a published release replace it with
+# the release URL and pin a real checksum instead of SKIP.
+source=("$pkgname-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+check() {
+  cd "$pkgname-$pkgver"
+  # Unit tests only: they use a local TLS server and a fake nft, never the host firewall.
+  python -m pytest -q tests/unit
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  make DESTDIR="$pkgdir" PREFIX=/usr SYSCONFDIR=/etc install install-config
+  python -m compileall -q -s "$pkgdir" "$pkgdir/usr/lib/geoblock"
+}

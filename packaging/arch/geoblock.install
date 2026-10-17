@@ -1,0 +1,22 @@
+post_install() {
+  cat <<'MSG'
+geoblock is installed but the firewall policy is NOT active.
+  sudo geoblock test       # read-only checks
+  sudo geoblock install    # download and validate the first dataset
+  sudo geoblock enable     # load the rules; enable boot service + daily updates
+MSG
+}
+
+post_upgrade() {
+  systemctl daemon-reload >/dev/null 2>&1 || true
+  echo "geoblock upgraded. The loaded rules are unchanged; run 'sudo geoblock update' to rebuild them."
+}
+
+pre_remove() {
+  # Remove only project-owned resources: the inet geoblock table and geoblock units.
+  /usr/bin/geoblock uninstall >/dev/null 2>&1 || true
+}
+
+post_remove() {
+  echo "Stored data in /var/lib/geoblock and configuration in /etc/geoblock were kept."
+}
