@@ -28,6 +28,10 @@ Details and the evidence behind them: [docs/firewall-backends.md](docs/firewall-
 ## Install
 
 ```bash
+# One line (downloads the repo tarball over HTTPS, installs files only; read install.sh first if you prefer):
+curl -fsSL https://raw.githubusercontent.com/Garcia6l20/geoblock/refs/heads/main/install.sh | bash
+# options: ... | bash -s -- --dry-run      pin a version: GEOBLOCK_REF=v0.1.0 ... | bash
+
 # From a source checkout (installs files and systemd units only; no firewall change):
 sudo ./scripts/install.sh
 
