@@ -95,7 +95,8 @@ def cmd_check_config(ctx: Context, args) -> int:
 
 
 def cmd_install(ctx: Context, args) -> int:
-    ctx.require_root() if not ctx.dry_run else None
+    if not ctx.dry_run:
+        ctx.require_root()
     report = preflight.detect(ctx.nft, systemctl=ctx.use_systemd)
     out("Environment check:")
     print_report(report)
@@ -157,6 +158,8 @@ def cmd_update(ctx: Context, args) -> int:
 
 
 def cmd_enable(ctx: Context, args) -> int:
+    if not ctx.dry_run:
+        ctx.require_root()
     report = preflight.detect(ctx.nft, systemctl=ctx.use_systemd)
     out("Compatibility check:")
     print_report(report)

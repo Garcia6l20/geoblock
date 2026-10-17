@@ -54,6 +54,20 @@ def test_rollback_dry_run_without_history(tmp):
     assert p.returncode == 6 and "nothing to roll back" in p.stderr
 
 
+def _nft_usable() -> bool:
+    from geoblock.nftables import Nft
+    from geoblock.preflight import MINIMAL_RULESET
+    try:
+        Nft().check(MINIMAL_RULESET)
+        return True
+    except Exception:
+        return False
+
+
+needs_nft = pytest.mark.skipif(not _nft_usable(), reason="nft -c not usable here (no nft or no namespaces)")
+
+
+@needs_nft
 def test_update_dry_run_changes_nothing(tmp, server):
     cfg = helpers.write_config(tmp, server)
     p = run(tmp, cfg, "update", "--dry-run")

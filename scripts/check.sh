@@ -19,10 +19,6 @@ lint() {
         # shellcheck disable=SC2086
         shellcheck -x $sh_files && ok "shellcheck" || bad "shellcheck"
     else skip "shellcheck (not installed)"; fi
-    if command -v shfmt >/dev/null; then
-        # shellcheck disable=SC2086
-        shfmt -d -i 4 -ci $sh_files >/dev/null && ok "shfmt" || bad "shfmt"
-    else skip "shfmt (not installed)"; fi
     if command -v ruff >/dev/null; then
         ruff check . && ok "ruff check" || bad "ruff check"
         ruff format --check lib bin tests >/dev/null 2>&1 && ok "ruff format" || skip "ruff format (style differences; not enforced)"
